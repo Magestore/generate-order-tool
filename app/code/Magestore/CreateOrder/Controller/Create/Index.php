@@ -44,6 +44,9 @@ class Index extends \Magento\Framework\App\Action\Action
         try{
            $this->order->create($this->numberOrders, $this->type);
             echo __('%1 order(s) was created successfully!', $this->numberOrders).'<br/>';
+            echo '<script>    setTimeout(function () {
+        location.reload()
+    }, 2000);</script>';
         }catch(Exception $e){
             \Zend_Debug::dump($e->getMessage());
         }
