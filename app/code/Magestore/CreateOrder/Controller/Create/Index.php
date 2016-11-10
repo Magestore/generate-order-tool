@@ -40,12 +40,12 @@ class Index extends \Magento\Framework\App\Action\Action
         $numberOrders = $this->getNumberOrders();
         $type = $this->getType();
         $shippingMethod = $this->getShippingMethod();
-//        try{
-        $this->order->create($numberOrders, $type, $shippingMethod);
-        echo __('%1 order(s) was created successfully!', $numberOrders).'<br/>';
-//        }catch(Exception $e){
-//            echo $e->getMessage();
-//        }
+        try{
+            $this->order->create($numberOrders, $type, $shippingMethod);
+            echo __('%1 order(s) was created successfully!', $numberOrders).'<br/>';
+        }catch(Exception $e){
+            echo $e->getMessage();
+        }
 
         echo '<script>
                 setTimeout(function () {
