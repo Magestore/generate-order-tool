@@ -67,6 +67,6 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     public function getTimeStep() {
-        return $this->getRequest()->getParam('time_step') ? : 2000000;
+        return $this->getRequest()->getParam('time_step') ? : 2000;
     }
 }
