@@ -7,6 +7,7 @@
  */
 namespace Magestore\CreateOrder\Model;
 
+use Magento\Catalog\Model\Product\Exception;
 use Magento\Sales\Model\Order;
 
 class Create extends \Magento\Sales\Model\AdminOrder\Create
@@ -23,7 +24,8 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
     const KEY_QTY = 'qty';
     const MAX_PRODUCTS = 3;
     const MAX_IDS = 20;
-    const MAX_QTY = 4;
+    const MAX_QTY = 1;
+    const KEY_SUPER_ATTRIBUTE = 'super_attribute';
 
     /**
      * Add multiple products to current order quote
@@ -194,6 +196,7 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
                 $product = [];
                 $product[self::KEY_ID] = $item->getId();
                 $product[self::KEY_QTY] = $item->getQty();
+                $product[self::KEY_SUPER_ATTRIBUTE] = $item->getSuperAttribute();
                 $products[] = $product;
             }
             $this->addProducts($products);
@@ -203,12 +206,27 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
 
     public function getCustomItems(){
 		$items = [];
-		for($i=0; $i< rand(1, self::MAX_PRODUCTS); $i++){
+        $maxProducts = rand(1, self::MAX_PRODUCTS);
+		for($i=0; $i< $maxProducts; $i++){
 			$item = new \Magento\Framework\DataObject();
 			$item->setData('id', rand(1,self::MAX_IDS));
 			$item->setData('qty', rand(1,self::MAX_QTY));
 			$items[$i] = $item;
 		}
+		if($maxProducts >= 4){
+            $item1 = new \Magento\Framework\DataObject();
+            $item1->setData('id', 163);
+            $item1->setData('qty', 1);
+            $att1 = new \Magento\Framework\DataObject();
+            $att1->setData('code', 93);
+            $att1->setData('value', 53);
+            $att2 = new \Magento\Framework\DataObject();
+            $att2->setData('code', 141);
+            $att2->setData('value', 171);
+            $superAttributes = [$att1, $att2];
+            $item1->setData('super_attribute', $superAttributes);
+            $items[$maxProducts - 1] = $item1;
+        }
         // $item1 = new \Magento\Framework\DataObject();
         // $item1->setData('id', rand(1,20));
         // $item1->setData('qty', rand(1,4));
@@ -272,12 +290,12 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
         return $payment;
     }
 
-    public function getCustomShipping($customerId){
+    public function getCustomShipping($customerId, $shippingMethod){
         $address = $this->getCustomAddress($customerId);
         $shipping = new \Magento\Framework\DataObject();
         $shipping->setData('address', $address);
         $shipping->setData('datetime', '');
-        $shipping->setData('method', 'flatrate_flatrate');
+        $shipping->setData('method', $shippingMethod);
         $shipping->setData('track', []);
         return $shipping;
     }
@@ -294,10 +312,10 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
         return $config;
     }
 
-    public function create($numberOrder = 1, $type = 1){
+    public function create($numberOrder = 1, $type = 1, $shippingMethod = 'checkmo'){
         $customerId = ($type ==1) ? self::CUSTOMER_ID : null;
         $payment = $this->getCustomPayments($customerId);
-        $shipping = $this->getCustomShipping($customerId);
+        $shipping = $this->getCustomShipping($customerId, $shippingMethod);
         $config = $this->getCustomConfig();
         for ($i=0; $i<$numberOrder; $i++) {
 			$items = $this->getCustomItems();
@@ -345,7 +363,11 @@ class Create extends \Magento\Sales\Model\AdminOrder\Create
         $this->getQuote()->getShippingAddress()->unsCachedItemsAll();
         $this->getQuote()->setTotalsCollectedFlag(false);
         $this->quoteRepository->save($this->getQuote());
-        $order = $this->createOrder();
+        try{
+            $order = $this->createOrder();
+        }catch (Exception $e){
+            var_dump($e->getMessage());die();
+        }
         return $order;
     }
 

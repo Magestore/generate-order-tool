@@ -37,15 +37,36 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        if($this->getRequest()->getParam('number_orders'))
-            $this->numberOrders = $this->getRequest()->getParam('number_orders');
-        if($this->getRequest()->getParam('use_guest'))
-            $this->type = $this->getRequest()->getParam('use_guest');
-        try{
-           $this->order->create($this->numberOrders, $this->type);
-            echo __('%1 order(s) was created successfully!', $this->numberOrders).'<br/>';
-        }catch(Exception $e){
-            \Zend_Debug::dump($e->getMessage());
-        }
+        $numberOrders = $this->getNumberOrders();
+        $type = $this->getType();
+        $shippingMethod = $this->getShippingMethod();
+//        try{
+            $this->order->create($numberOrders, $type, $shippingMethod);
+            echo __('%1 order(s) was created successfully!', $numberOrders).'<br/>';
+//        }catch(Exception $e){
+//            echo $e->getMessage();
+//        }
+
+        echo '<script>
+                setTimeout(function () {
+                    location.reload()
+                }, '.$this->getTimeStep().');
+              </script>';
+    }
+
+    public function getNumberOrders() {
+        return $this->getRequest()->getParam('number_orders') ? : rand(1,5);
+    }
+
+    public function getType() {
+        return $this->getRequest()->getParam('use_guest') ? : rand(0,1);
+    }
+
+    public function getShippingMethod() {
+        return $this->getRequest()->getParam('shipping_method') ? : 'flatrate_flatrate';
+    }
+
+    public function getTimeStep() {
+        return $this->getRequest()->getParam('time_step') ? : 2000000;
     }
 }
